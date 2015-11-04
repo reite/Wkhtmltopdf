@@ -21,7 +21,7 @@ data WkSettings = WKSettings {
 defWkSettings :: WkSettings
 defWkSettings = WKSettings {
     wkPath = "wkhtmltopdf",
-    wkEncoding = "utf8"
+    wkEncoding = "utf-8"
 }
 
 
