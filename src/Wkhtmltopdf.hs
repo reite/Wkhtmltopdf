@@ -9,7 +9,7 @@ import Text.Blaze.Html (Html)
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-
+import qualified System.Info as SI
 
 
 
@@ -29,14 +29,19 @@ defWkSettings = WKSettings {
 
 convertBytestring :: WkSettings -> BL.ByteString -> IO B.ByteString
 convertBytestring wks bs = do
-    (Just stdin, Just stdout, _, _) <- createProcess $
-        (proc (wkPath wks) opts) { std_out = CreatePipe
-                                 , std_in  = CreatePipe 
-                                 }
-
+    (Just stdin, Just stdout, _, _) <- createProcess cprocess
     BL.hPutStr stdin bs >> hClose stdin
     B.hGetContents stdout
     where
+        procWith p = p { std_out = CreatePipe
+                       , std_in  = CreatePipe 
+                       }
+
+        cprocess = procWith $ if SI.os == "linux"
+                      then (proc "xvfb-run" ((wkPath wks):opts))
+                      else (proc (wkPath wks) opts)
+
+
         opts = ["--encoding", wkEncoding wks , "-", "-"]
 
 -- Convert the given html and return the pdf as a strict bytestring.
